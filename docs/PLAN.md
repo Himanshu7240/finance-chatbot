@@ -5,7 +5,9 @@ Rebuilding the WIDS finance chatbot from scratch — same documented methodology
 
 - [x] **Day 1 — Scaffolding**: repo structure, `requirements.txt`, `.gitignore`, `.env.example`,
       GitHub repo created, original leaked HF token flagged for revocation.
-- [ ] **Day 2 — Dataset design**: QA/context schema, topic scope (NIFTY 50 companies), source list.
+- [x] **Day 2 — Dataset design**: QA/context schema (`src/dataset/schema.py`), NIFTY 50 company
+      list (`data/companies.json`), source + compliance decisions (`docs/dataset-design.md`),
+      Guide 01 on dataset design.
 - [ ] **Day 3 — Dataset collection**: scrape news articles per company.
 - [ ] **Day 4 — Dataset cleaning & split**: dedupe, structure into JSON, train/val/test split.
 - [ ] **Day 5 — Fine-tuning notebook**: LoRA + 4-bit config, env-based HF login.
@@ -20,4 +22,7 @@ Rebuilding the WIDS finance chatbot from scratch — same documented methodology
 
 - HF token is read from `.env` / Kaggle secrets, never hardcoded.
 - Dataset is rebuilt from scratch (not copied) — see Day 2–4.
+- Article discovery uses Moneycontrol's published news sitemaps instead of the paginated
+  listing URLs the original used, which `robots.txt` disallows. See `dataset-design.md`.
+- Each day ships a concept guide in `docs/guides/` alongside the code.
 - Flask interface mentioned in the report is out of scope unless time permits after Day 12.

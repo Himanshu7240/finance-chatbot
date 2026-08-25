@@ -35,6 +35,8 @@ pip install -r requirements.txt
 cp .env.example .env   # fill in HF_TOKEN etc.
 ```
 
-## Status
+## Docs
 
-See [`docs/PLAN.md`](docs/PLAN.md) for the current build plan and progress.
+- [`docs/PLAN.md`](docs/PLAN.md) — build plan and progress
+- [`docs/dataset-design.md`](docs/dataset-design.md) — dataset schema, scope, sourcing and compliance
+- [`docs/guides/`](docs/guides/) — concept guides for each technique used in this project
