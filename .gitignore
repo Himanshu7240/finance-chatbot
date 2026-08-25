@@ -1,0 +1,29 @@
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Data & model artifacts (large / regenerable, don't commit)
+data/raw/
+data/processed/
+models/
+checkpoints/
+*.bin
+*.safetensors
+*.pt
+
+# Experiment tracking
+wandb/
+logs/
+
+# OS
+.DS_Store
+Thumbs.db

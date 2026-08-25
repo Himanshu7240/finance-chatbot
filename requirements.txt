@@ -1,0 +1,23 @@
+# Core ML
+torch
+transformers
+peft
+accelerate
+bitsandbytes
+datasets
+huggingface_hub
+
+# Data collection
+requests
+beautifulsoup4
+pandas
+
+# App / retrieval layer
+gradio
+yfinance
+sentence-transformers
+scikit-learn
+
+# Utilities
+python-dotenv
+wandb
