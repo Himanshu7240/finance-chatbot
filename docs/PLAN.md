@@ -8,7 +8,9 @@ Rebuilding the WIDS finance chatbot from scratch — same documented methodology
 - [x] **Day 2 — Dataset design**: QA/context schema (`src/dataset/schema.py`), NIFTY 50 company
       list (`data/companies.json`), source + compliance decisions (`docs/dataset-design.md`),
       Guide 01 on dataset design.
-- [ ] **Day 3 — Dataset collection**: scrape news articles per company.
+- [x] **Day 3 — Dataset collection**: `src/scraping/` — sitemap discovery, robots-aware
+      rate-limited fetcher with disk cache, company matching, article extraction; corpus in
+      `data/raw/articles/`, Guide 02 on collecting a corpus.
 - [ ] **Day 4 — Dataset cleaning & split**: dedupe, structure into JSON, train/val/test split.
 - [ ] **Day 5 — Fine-tuning notebook**: LoRA + 4-bit config, env-based HF login.
 - [ ] **Day 6–7 — Run + monitor training**: Kaggle GPU, checkpointing, evaluation.
@@ -24,5 +26,7 @@ Rebuilding the WIDS finance chatbot from scratch — same documented methodology
 - Dataset is rebuilt from scratch (not copied) — see Day 2–4.
 - Article discovery uses Moneycontrol's published news sitemaps instead of the paginated
   listing URLs the original used, which `robots.txt` disallows. See `dataset-design.md`.
+- The scraper sends a browser user-agent (the CDN 403s any other kind) and identifies itself
+  in an `X-Purpose` header instead. Documented in `dataset-design.md` and Guide 02.
 - Each day ships a concept guide in `docs/guides/` alongside the code.
 - Flask interface mentioned in the report is out of scope unless time permits after Day 12.

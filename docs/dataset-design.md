@@ -58,8 +58,17 @@ Rules the scraper follows:
 1. Honor every `Disallow` rule under `User-agent: *` — no `/page-*/` pagination, no
    `/news/printpage/`, no `/stocks/company_info/*`.
 2. Discover URLs via published sitemaps only.
-3. Rate-limit requests with a delay between fetches; identify with a descriptive user-agent.
-4. Cache raw fetched HTML in `data/raw/` so re-runs don't re-hit the site.
+3. Rate-limit requests (~3s between fetches, plus jitter) and back off exponentially on
+   403/429/5xx rather than hammering through them.
+4. Cache raw fetched HTML in `data/raw/http/` so re-runs don't re-hit the site.
+
+**User-agent — a documented compromise.** The Day 2 plan was to identify the scraper with a
+descriptive user-agent. That turned out to be impossible: Moneycontrol's CDN returns `403` for
+any user-agent that isn't a recognised browser string, including a browser string with a
+project token appended. The scraper therefore sends a plain browser user-agent and identifies
+itself in an `X-Purpose` header, plus an optional `From:` contact address read from
+`SCRAPER_CONTACT` in `.env`. Every other constraint above is unchanged. See
+[Guide 02](guides/02-collecting-a-training-corpus.md) for the full reasoning.
 
 **Disclosure**: Moneycontrol's `robots.txt` additionally sets `Disallow: /` for named
 AI-training crawlers (`GPTBot`, `CCBot`, `Google-Extended`, `ChatGPT-User`). This project is a
@@ -69,8 +78,40 @@ transparency about data provenance. Anyone reusing this pipeline commercially, o
 should seek permission from the publisher first — and no article text is redistributed in this
 repository (`data/` is gitignored; only derived Q/A triplets are used, and only for training).
 
+## Collection pipeline (Day 3)
+
+Implemented in `src/scraping/`, run with:
+
+```bash
+python -m src.scraping.collect --months 6 --max-articles 25
+```
+
+| Module | Responsibility |
+|--------|----------------|
+| `robots.py` | Loads and applies `robots.txt` per host; fails closed if it can't be read |
+| `fetcher.py` | Rate limiting, exponential backoff, on-disk response cache, robots enforcement |
+| `sitemaps.py` | Article discovery via the news sitemap and the monthly archive sitemaps |
+| `matcher.py` | Maps an article URL to a NIFTY 50 company from its headline slug |
+| `article.py` | Extracts title, publish date and clean body paragraphs; drops boilerplate |
+| `collect.py` | CLI that runs discovery -> fetch -> parse -> `data/raw/articles/<TICKER>.jsonl` |
+
+**Company matching** works on whole slug tokens (so `itc` doesn't match `switch`), resolves
+ambiguity by longest alias (`sbi life` beats `sbi`), and carries per-company exclusion tokens
+for same-brand entities that aren't the constituent (`reliance-power`). Articles that pass slug
+matching are re-checked against the parsed body text before being stored.
+
+**Output**: one JSONL file per ticker, one article per line:
+
+```json
+{"company": "Tata Steel", "ticker": "TATASTEEL", "url": "...", "title": "...",
+ "published": "2026-07-31T20:51:04+05:30", "paragraphs": ["...", "..."]}
+```
+
+Runs are resumable — already-collected URLs are skipped and every response is cached — and each
+run writes `data/raw/collection-report.json` with per-company article and paragraph counts.
+
 ## QA generation
 
 Article paragraphs are turned into question/answer/context triplets by an LLM, with a prompt
 that constrains output to strict JSON and requires the company name to appear in the question
-(so examples stay attributable). Details and the prompt itself land on Day 3–4.
+(so examples stay attributable). Details and the prompt itself land on Day 4.
