@@ -16,7 +16,10 @@ Rebuilding the WIDS finance chatbot from scratch — same documented methodology
       article-level split, QA generation with Qwen2.5-7B-Instruct on Kaggle, groundedness
       validation. **Final dataset: 8,292 triplets** (train 6,368 / val 973 / test 951)
       across all 50 companies. Guide 03.
-- [ ] **Day 5 — Fine-tuning notebook**: LoRA + 4-bit config, env-based HF login.
+- [~] **Day 5 — Fine-tuning notebook**: Guide 04 on LoRA/QLoRA, shared prompt-format and
+      metrics modules (`src/training/`), `notebooks/finetune_llama_lora.ipynb` — LoRA r=32
+      on a 4-bit base, HF token from Kaggle secrets, baseline-before-training evaluation.
+      *Remaining: run it on Kaggle.*
 - [ ] **Day 6–7 — Run + monitor training**: Kaggle GPU, checkpointing, evaluation.
 - [ ] **Day 8 — Merge & publish model**: push merged model to Hugging Face Hub.
 - [ ] **Day 9 — Retrieval + app layer**: `StockDataRetriever` / `RAGPipeline` as `src/` modules.
@@ -32,5 +35,9 @@ Rebuilding the WIDS finance chatbot from scratch — same documented methodology
   listing URLs the original used, which `robots.txt` disallows. See `dataset-design.md`.
 - The scraper sends a browser user-agent (the CDN 403s any other kind) and identifies itself
   in an `X-Purpose` header instead. Documented in `dataset-design.md` and Guide 02.
+- Fine-tuning quantizes the base with **NF4** rather than the original's FP4 — same memory,
+  better precision for normally-distributed weights (QLoRA). See Guide 04.
+- Training loss is masked to the answer tokens only, so gradient signal isn't spent
+  learning to reproduce the question and context.
 - Each day ships a concept guide in `docs/guides/` alongside the code.
 - Flask interface mentioned in the report is out of scope unless time permits after Day 12.
