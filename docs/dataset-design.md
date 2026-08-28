@@ -114,4 +114,41 @@ run writes `data/raw/collection-report.json` with per-company article and paragr
 
 Article paragraphs are turned into question/answer/context triplets by an LLM, with a prompt
 that constrains output to strict JSON and requires the company name to appear in the question
-(so examples stay attributable). Details and the prompt itself land on Day 4.
+(so examples stay attributable). The prompt lives in
+[`src/dataset/qa_prompt.py`](../src/dataset/qa_prompt.py) — in the repo rather than in the
+notebook, because changing it changes every downstream number.
+
+**Generator**: `Qwen2.5-7B-Instruct` (Apache 2.0), run with vLLM on a free Kaggle GPU via
+[`notebooks/qa_generation_qwen.ipynb`](../notebooks/qa_generation_qwen.ipynb). A 7B teacher
+generating training data for the 3B student — knowledge distillation. Chosen over a hosted
+API so that anyone cloning this repo can rebuild the dataset with no API key and no spend,
+and so the derived dataset carries no licensing ambiguity. The trade-off is a higher rate of
+malformed JSON, which the validator absorbs.
+
+**Validation** ([`src/dataset/qa_validate.py`](../src/dataset/qa_validate.py)): every pair
+must parse as JSON, name the company, ask something other than a yes/no question, answer in
+≤25 words, and be *grounded* — at least 70% of the answer's content words present in the
+source paragraph, and **every number in the answer present in the paragraph**, with no
+tolerance. A fabricated figure is the worst example a finance dataset can contain. Rejections
+are counted by reason in `data/processed/dataset-report.json`.
+
+## Pipeline
+
+```
+src.scraping.collect   ->  data/raw/articles/<TICKER>.jsonl   2,014 articles (Day 3)
+src.dataset.clean      ->  data/processed/paragraphs.jsonl    10,257 from 18,098
+src.dataset.split      ->  data/processed/splits.json         80/10/10, by article
+  [Kaggle notebook]    ->  data/processed/generations.jsonl   11,590 pairs
+src.dataset.build      ->  data/processed/{train,val,test}.json  8,292 triplets
+```
+
+**Attribution filtering**: multi-company roundup articles ("Stocks to Watch Today: …") label
+every paragraph with a single company, so paragraphs about other companies inherit the wrong
+name. Groundedness checks cannot detect this — the answer is genuinely supported by the text;
+only the label is wrong. `clean.py` drops paragraphs from roundup headlines unless they name
+their own company (3,525 removed), and `qa_validate.py` catches the residue involving
+non-NIFTY companies at validation time.
+
+Splits are assigned **by article, not by paragraph**: paragraphs from one article overlap
+heavily, so a random per-paragraph split would put near-identical text in both train and
+test and inflate eval scores. See [Guide 03](guides/03-generating-a-qa-dataset.md).

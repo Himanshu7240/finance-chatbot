@@ -11,7 +11,11 @@ Rebuilding the WIDS finance chatbot from scratch — same documented methodology
 - [x] **Day 3 — Dataset collection**: `src/scraping/` — sitemap discovery, robots-aware
       rate-limited fetcher with disk cache, company matching, article extraction; corpus in
       `data/raw/articles/`, Guide 02 on collecting a corpus.
-- [ ] **Day 4 — Dataset cleaning & split**: dedupe, structure into JSON, train/val/test split.
+- [x] **Day 4 — Dataset cleaning, generation & split**: `src/dataset/` — cleaning, near-
+      duplicate and attribution filtering (10,257 paragraphs from 18,098), leakage-safe
+      article-level split, QA generation with Qwen2.5-7B-Instruct on Kaggle, groundedness
+      validation. **Final dataset: 8,292 triplets** (train 6,368 / val 973 / test 951)
+      across all 50 companies. Guide 03.
 - [ ] **Day 5 — Fine-tuning notebook**: LoRA + 4-bit config, env-based HF login.
 - [ ] **Day 6–7 — Run + monitor training**: Kaggle GPU, checkpointing, evaluation.
 - [ ] **Day 8 — Merge & publish model**: push merged model to Hugging Face Hub.
