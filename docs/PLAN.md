@@ -16,11 +16,13 @@ Rebuilding the WIDS finance chatbot from scratch — same documented methodology
       article-level split, QA generation with Qwen2.5-7B-Instruct on Kaggle, groundedness
       validation. **Final dataset: 8,292 triplets** (train 6,368 / val 973 / test 951)
       across all 50 companies. Guide 03.
-- [~] **Day 5 — Fine-tuning notebook**: Guide 04 on LoRA/QLoRA, shared prompt-format and
+- [x] **Day 5 — Fine-tuning notebook**: Guide 04 on LoRA/QLoRA, shared prompt-format and
       metrics modules (`src/training/`), `notebooks/finetune_llama_lora.ipynb` — LoRA r=32
       on a 4-bit base, HF token from Kaggle secrets, baseline-before-training evaluation.
-      *Remaining: run it on Kaggle.*
-- [ ] **Day 6–7 — Run + monitor training**: Kaggle GPU, checkpointing, evaluation.
+- [x] **Day 6–7 — Run + monitor training**: trained on a single Kaggle T4, final train loss
+      0.134. Against the base model on 300 held-out examples: exact match 11.7 → **76.3**,
+      token F1 40.8 → **91.5**, numeric accuracy 63.8 → **91.9**. See
+      [`training-results.md`](training-results.md).
 - [ ] **Day 8 — Merge & publish model**: push merged model to Hugging Face Hub.
 - [ ] **Day 9 — Retrieval + app layer**: `StockDataRetriever` / `RAGPipeline` as `src/` modules.
 - [ ] **Day 10 — Gradio UI + integration testing**.

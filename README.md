@@ -38,5 +38,6 @@ cp .env.example .env   # fill in HF_TOKEN etc.
 ## Docs
 
 - [`docs/PLAN.md`](docs/PLAN.md) — build plan and progress
+- [`docs/training-results.md`](docs/training-results.md) — fine-tuning setup, results and limitations
 - [`docs/dataset-design.md`](docs/dataset-design.md) — dataset schema, scope, sourcing and compliance
 - [`docs/guides/`](docs/guides/) — concept guides for each technique used in this project
