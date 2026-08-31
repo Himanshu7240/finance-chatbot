@@ -27,6 +27,39 @@ training — splits are assigned per article, not per paragraph.
 | Token F1 | 40.8 | **91.5** | **+50.7** |
 | Numeric accuracy (235 examples) | 63.8 | **91.9** | **+28.1** |
 
+## The loss curve — and why epoch 2 was wasted
+
+796 steps, 1h18m on one T4. Validation was evaluated every 100 steps:
+
+| Step | Train loss | Val loss | |
+|---|---|---|---|
+| 100 | 0.191 | 0.191 | |
+| 200 | 0.179 | 0.178 | |
+| 300 | 0.178 | 0.161 | |
+| 400 | 0.156 | **0.155** | ← best |
+| 500 | 0.074 | 0.159 | train halves, val rises |
+| 600 | 0.060 | 0.161 | |
+| 700 | 0.065 | 0.163 | |
+
+6,368 training examples at an effective batch of 16 is **398 steps per epoch** — so validation
+loss bottoms out exactly at the end of epoch 1, and everything after it is memorization.
+Training loss halving from 0.156 to 0.074 while validation loss climbs is the textbook
+signature of overfitting.
+
+Two consequences:
+
+1. **The reported metrics are from the step-400 checkpoint, not the final weights.**
+   `load_best_model_at_end=True` with `metric_for_best_model="eval_loss"` restores the best
+   checkpoint before evaluation, and `save_total_limit` exempts it from rotation. That setting
+   is the only reason the headline numbers reflect the good model rather than the overfit one.
+2. **Any retrain should use `num_train_epochs=1`** — same result for half the compute. The
+   2-epoch default was convention, and the curve says convention was wrong here.
+
+Worth noting how weakly loss tracks the task metrics: validation loss improved only from 0.191
+to 0.155 across the whole run, while exact match went from 11.7 to 76.3. Most of that gain is
+the model learning the answer *format*, which happens in the first few hundred steps and barely
+moves the loss. Loss is a poor proxy for whether the model is doing the job.
+
 ## Reading these numbers honestly
 
 **The base model already knew a lot.** F1 40.8 with EM 11.7 is the signature of a model that

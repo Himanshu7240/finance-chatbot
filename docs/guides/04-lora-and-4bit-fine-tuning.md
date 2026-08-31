@@ -170,3 +170,8 @@ data problem, and you can waste a day generating examples that were never the bo
   every update on the actual task.
 - *"How do you know fine-tuning helped?"* — By scoring the base model on the same held-out
   test set first. The absolute number means nothing; the delta is the result.
+- *"How many epochs, and how did you decide?"* — One. Two were configured, but validation loss
+  bottomed out at step 400 of 796 — exactly the epoch-1 boundary — and rose for the whole
+  second epoch while training loss halved. `load_best_model_at_end` meant the overfit weights
+  were discarded automatically, but the second epoch was pure wasted compute. See
+  [training results](../training-results.md).
