@@ -10,3 +10,4 @@ discussion. Added incrementally as the project reaches the relevant day.
 | 02 | [Collecting a training corpus](02-collecting-a-training-corpus.md) | Day 3 |
 | 03 | [Generating and splitting a QA dataset](03-generating-a-qa-dataset.md) | Day 4 |
 | 04 | [LoRA and 4-bit fine-tuning](04-lora-and-4bit-fine-tuning.md) | Day 5 |
+| 05 | [Merging and publishing a model](05-merging-and-publishing-a-model.md) | Day 8 |

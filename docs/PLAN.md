@@ -23,7 +23,10 @@ Rebuilding the WIDS finance chatbot from scratch — same documented methodology
       0.134. Against the base model on 300 held-out examples: exact match 11.7 → **76.3**,
       token F1 40.8 → **91.5**, numeric accuracy 63.8 → **91.9**. See
       [`training-results.md`](training-results.md).
-- [ ] **Day 8 — Merge & publish model**: push merged model to Hugging Face Hub.
+- [~] **Day 8 — Merge & publish model**: Guide 05 on merging and model cards,
+      `src/training/merge.py` — fp16 merge (not into the 4-bit base), model card with the
+      real limitations, Llama-naming compliance check.
+      *Remaining: download the adapter from Kaggle, run the merge, push to the Hub.*
 - [ ] **Day 9 — Retrieval + app layer**: `StockDataRetriever` / `RAGPipeline` as `src/` modules.
 - [ ] **Day 10 — Gradio UI + integration testing**.
 - [ ] **Day 11 — Documentation**: README, dataset provenance, setup docs.
@@ -42,4 +45,6 @@ Rebuilding the WIDS finance chatbot from scratch — same documented methodology
 - Training loss is masked to the answer tokens only, so gradient signal isn't spent
   learning to reproduce the question and context.
 - Each day ships a concept guide in `docs/guides/` alongside the code.
+- Published model name must begin with `Llama` and display "Built with Llama" - required by
+  the Llama 3.2 Community License for distributed derivatives. Enforced in `merge.py`.
 - Flask interface mentioned in the report is out of scope unless time permits after Day 12.
