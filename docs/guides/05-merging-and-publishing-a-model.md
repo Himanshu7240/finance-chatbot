@@ -50,6 +50,57 @@ since merging is a handful of matrix additions rather than a training run.
 
 Quantization for deployment, if wanted, happens **after** the merge, from the fp16 weights.
 
+## The environment trap: a library you never use
+
+The merge fell over on Kaggle with:
+
+```
+ImportError: Found an incompatible version of torchao. Found version 0.10.0,
+             but only versions above 0.16.0 are supported
+```
+
+on a plain fp16 model that has nothing to do with torchao. The reason is worth knowing,
+because the same shape of bug recurs across the HF stack. PEFT's `is_torchao_available()`
+does this:
+
+```python
+if importlib.util.find_spec("torchao") is None:
+    return False
+if parse(importlib_metadata.version("torchao")) < TORCHAO_MINIMUM_VERSION:
+    raise ImportError(...)          # <- raises instead of returning False
+```
+
+An *availability* check that raises. Installed-but-old is treated as a broken environment
+rather than as "not available". And PEFT calls it while wrapping each `Linear` layer, probing
+the quantization backends in turn — bitsandbytes, HQQ, torchao, AQLM — to work out what kind
+of weight it is adapting. Kaggle's image happens to preinstall torchao 0.10.0, so the probe
+detonates on a model that was never quantized at all.
+
+Three ways out, and the choice matters:
+
+| Fix | Cost |
+|---|---|
+| `pip install -U torchao` | Pulls a torchao built against a different torch — the dependency cascade that wrecked Day 4 |
+| Pin an older PEFT | Trades a known bug for unknown ones, and drifts again next release |
+| Make torchao invisible | No install, no version drift, deterministic |
+
+The third is the honest one here: this merge is fp16 on CPU, nothing is quantized, and torchao
+is genuinely not needed. `sys.modules["torchao"] = None` makes `find_spec` return `None` — the
+first thing the check does — so it answers `False`, which is *the correct answer for this
+model*, not a lie told to get past a guard.
+
+Two details make it work:
+
+- **It must run before PEFT is imported.** PEFT does `from .import_utils import
+  is_torchao_available` in several modules, so patching the module attribute afterwards would
+  not reach the already-bound names.
+- **Re-running after a failure is safe.** The check re-reads `find_spec` on every call, and
+  `lru_cache` never cached the exception it raised — so no kernel restart is needed.
+
+The general lesson: when a dependency error names a library your code does not use, the fix is
+usually to stop the probe finding it, not to install it. Installing it is how you end up
+version-matching a package you were never going to call.
+
 ## Adapter or merged model — publish which?
 
 Both, and for different reasons:
