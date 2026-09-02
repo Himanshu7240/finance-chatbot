@@ -14,8 +14,8 @@ no hardcoded secrets, and a dataset built from the ground up.
 - **Data**: scrape recent news articles for NIFTY 50 companies from public financial news sources,
   clean the text, and generate question/answer/context triplets from each article paragraph via an LLM.
 - **Model**: Llama-3.2-3B-Instruct, fine-tuned with LoRA (r=32, alpha=32, dropout=0.05) on top of a
-  4-bit quantized base model (BitsAndBytes, fp4, double quantization) — memory-efficient enough to
-  train on a single Kaggle GPU.
+  4-bit quantized base model (BitsAndBytes, NF4, double quantization) — memory-efficient enough to
+  train on a single Kaggle T4.
 - **Interface**: a Gradio chat UI. Stock-price questions are detected via embedding similarity and
   answered with live data from `yfinance`; other financial questions go to the fine-tuned model.
 
@@ -27,6 +27,26 @@ notebooks/      # Kaggle notebooks (fine-tuning, data prep)
 data/           # raw/ and processed/ datasets (gitignored — see data/README.md)
 docs/           # original project report + supporting docs
 ```
+
+## Model
+
+Published on the Hub, merged into fp16 so it loads with a plain `from_pretrained` and needs
+neither `peft` nor access to the gated base repo:
+
+- **[Himanshu724006/Llama-3.2-3B-finance-india](https://huggingface.co/Himanshu724006/Llama-3.2-3B-finance-india)** — merged model, 6.43 GB
+- **[Himanshu724006/Llama-3.2-3B-finance-india-lora](https://huggingface.co/Himanshu724006/Llama-3.2-3B-finance-india-lora)** — the LoRA adapter alone, 195 MB
+
+```python
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
+model = AutoModelForCausalLM.from_pretrained("Himanshu724006/Llama-3.2-3B-finance-india", device_map="auto")
+tokenizer = AutoTokenizer.from_pretrained("Himanshu724006/Llama-3.2-3B-finance-india")
+```
+
+Against the un-fine-tuned base on 300 held-out examples: exact match 11.7 → **76.3**, token F1
+40.8 → **91.5**, numeric accuracy 63.8 → **91.9**. Read
+[the limitations](docs/training-results.md) before trusting those numbers — the test answers
+came from the same teacher model as the training data, and ~8% of numeric answers are wrong.
 
 ## Setup
 

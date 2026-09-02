@@ -23,10 +23,12 @@ Rebuilding the WIDS finance chatbot from scratch — same documented methodology
       0.134. Against the base model on 300 held-out examples: exact match 11.7 → **76.3**,
       token F1 40.8 → **91.5**, numeric accuracy 63.8 → **91.9**. See
       [`training-results.md`](training-results.md).
-- [~] **Day 8 — Merge & publish model**: Guide 05 on merging and model cards,
-      `src/training/merge.py` — fp16 merge (not into the 4-bit base), model card with the
-      real limitations, Llama-naming compliance check.
-      *Remaining: download the adapter from Kaggle, run the merge, push to the Hub.*
+- [x] **Day 8 — Merge & publish model**: Guide 05 on merging and model cards,
+      `src/training/merge.py` + `notebooks/merge_and_publish.ipynb` — fp16 merge (not into the
+      4-bit base) on a Kaggle CPU session, model card with the real limitations, Llama-naming
+      compliance check. Published:
+      [`Himanshu724006/Llama-3.2-3B-finance-india`](https://huggingface.co/Himanshu724006/Llama-3.2-3B-finance-india) (6.43 GB, fp16) and
+      [`Himanshu724006/Llama-3.2-3B-finance-india-lora`](https://huggingface.co/Himanshu724006/Llama-3.2-3B-finance-india-lora) (the 195 MB adapter).
 - [ ] **Day 9 — Retrieval + app layer**: `StockDataRetriever` / `RAGPipeline` as `src/` modules.
 - [ ] **Day 10 — Gradio UI + integration testing**.
 - [ ] **Day 11 — Documentation**: README, dataset provenance, setup docs.

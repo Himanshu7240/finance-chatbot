@@ -1,7 +1,7 @@
 """Day 8: merge the LoRA adapter into the base weights and publish.
 
     python -m src.training.merge --adapter models/lora-adapter --out models/merged
-    python -m src.training.merge --push Himanshu7240/Llama-3.2-3B-finance-india
+    python -m src.training.merge --push Himanshu724006/Llama-3.2-3B-finance-india
 
 Merging folds ``(alpha/r) · B · A`` back into the frozen weights, so the result is
 architecturally plain Llama-3.2-3B: no PEFT at inference, no extra matmuls, loads with
@@ -176,7 +176,7 @@ def main(argv=None) -> None:
     parser.add_argument("--base", default=BASE_MODEL)
     parser.add_argument("--push", metavar="REPO_ID",
                         help="also push to this Hub repo, e.g. "
-                             "Himanshu7240/Llama-3.2-3B-finance-india")
+                             "Himanshu724006/Llama-3.2-3B-finance-india")
     parser.add_argument("--card-only", action="store_true",
                         help="just write the model card, without loading any weights")
     args = parser.parse_args(argv)

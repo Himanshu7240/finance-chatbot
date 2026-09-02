@@ -98,3 +98,12 @@ next improvement if this project were taken further.
   do just as well for less compute.
 - Report per-question-type accuracy (financial results vs. analyst coverage vs. corporate
   actions), since aggregate F1 hides which categories are weak.
+
+## Published
+
+Merged in fp16 on a Kaggle CPU session (Day 8) and pushed to the Hub:
+
+- [`Himanshu724006/Llama-3.2-3B-finance-india`](https://huggingface.co/Himanshu724006/Llama-3.2-3B-finance-india) — 6,425,528,856 bytes, `dtype: float16`, no
+  `quantization_config`, i.e. merged against the original weights rather than the 4-bit base.
+- [`Himanshu724006/Llama-3.2-3B-finance-india-lora`](https://huggingface.co/Himanshu724006/Llama-3.2-3B-finance-india-lora) — the adapter as trained: r=32,
+  alpha=32, dropout 0.05, all seven projections.
