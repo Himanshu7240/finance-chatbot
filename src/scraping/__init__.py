@@ -7,7 +7,14 @@ See docs/guides/02-collecting-a-training-corpus.md for the design, and run with:
 
 from .article import Article, parse_article
 from .fetcher import Blocked, Fetcher
-from .matcher import Company, load_companies, match_company, mentions
+from .matcher import (
+    Company,
+    load_companies,
+    match_company,
+    match_text,
+    mentions,
+    strip_company,
+)
 from .robots import RobotsPolicy
 
 __all__ = [
@@ -18,6 +25,8 @@ __all__ = [
     "RobotsPolicy",
     "load_companies",
     "match_company",
+    "match_text",
     "mentions",
     "parse_article",
+    "strip_company",
 ]

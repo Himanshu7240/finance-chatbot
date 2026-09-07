@@ -48,6 +48,23 @@ Against the un-fine-tuned base on 300 held-out examples: exact match 11.7 → **
 [the limitations](docs/training-results.md) before trusting those numbers — the test answers
 came from the same teacher model as the training data, and ~8% of numeric answers are wrong.
 
+## Asking it something
+
+The retrieval layer runs on its own, without the 6.4 GB model — it answers from the evidence it
+retrieved, which is also what makes it testable:
+
+```bash
+python -m src.app.pipeline "What is Tata Steel trading at?"      # live NSE quote via yfinance
+python -m src.app.pipeline "Why is Tata Steel restructuring?"    # the Day 4 news corpus
+python -m src.app.pipeline "How is Wipro's AI business doing?" --model   # add the fine-tune
+```
+
+A question is routed to the live price feed only when it has both price wording *and* a resolvable
+NIFTY 50 company; anything else with a company goes to the article corpus; anything with no company
+is refused rather than answered from a lexically similar paragraph. Every answer carries its source
+— an article URL and date, or the quote's fetch time. The reasoning is in
+[Guide 06](docs/guides/06-retrieval-and-the-app-layer.md).
+
 ## Setup
 
 ```bash

@@ -29,7 +29,15 @@ Rebuilding the WIDS finance chatbot from scratch — same documented methodology
       compliance check. Published:
       [`Himanshu724006/Llama-3.2-3B-finance-india`](https://huggingface.co/Himanshu724006/Llama-3.2-3B-finance-india) (6.43 GB, fp16) and
       [`Himanshu724006/Llama-3.2-3B-finance-india-lora`](https://huggingface.co/Himanshu724006/Llama-3.2-3B-finance-india-lora) (the 195 MB adapter).
-- [ ] **Day 9 — Retrieval + app layer**: `StockDataRetriever` / `RAGPipeline` as `src/` modules.
+- [x] **Day 9 — Retrieval + app layer**: Guide 06 on retrieval, `src/app/` — `StockDataRetriever`
+      (live NSE quotes via yfinance, written as model-readable context), `ArticleRetriever`
+      (TF-IDF over the 10,257 Day 4 paragraphs, scoped by ticker), `IntentRouter` (embedding
+      similarity with a keyword fallback), `RAGPipeline` and `FinanceLLM`. Measured on 300
+      held-out questions: company resolution **99.7%** with no wrong companies, answer present in
+      the retrieved context **69.0%** (53.3% without the ticker filter, 61.0% before stripping the
+      company name from the query); intent routing **34/36** on a hand-labelled battery, against
+      25/36 for the keyword rule alone. Runs end to end without the model, answering from the
+      retrieved evidence itself.
 - [ ] **Day 10 — Gradio UI + integration testing**.
 - [ ] **Day 11 — Documentation**: README, dataset provenance, setup docs.
 - [ ] **Day 12 — Final review & push**: demo, screenshots, release tag.
@@ -49,4 +57,9 @@ Rebuilding the WIDS finance chatbot from scratch — same documented methodology
 - Each day ships a concept guide in `docs/guides/` alongside the code.
 - Published model name must begin with `Llama` and display "Built with Llama" - required by
   the Llama 3.2 Community License for distributed derivatives. Enforced in `merge.py`.
+- Corpus retrieval is sparse (TF-IDF) rather than dense embeddings — measured better for
+  proper-noun/number queries over a single-domain corpus. Embeddings are still used for intent
+  routing, as the report specifies. See Guide 06.
+- The app refuses questions that resolve no NIFTY 50 company. A similarity floor turned out not
+  to detect off-topic questions at all (nonsense queries score 0.2-0.4); the entity check does.
 - Flask interface mentioned in the report is out of scope unless time permits after Day 12.
