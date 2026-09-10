@@ -96,7 +96,7 @@ python -m src.app.pipeline "How is Wipro's AI business doing?" --model    # add 
 ```
 
 ```bash
-pytest        # 96 tests, ~12 s, no network and no model download
+pytest        # 131 tests, ~45 s, no network and no model download
 ```
 
 The suite injects a fake price feed, a fake clock, a fake corpus and a fake generator, so every
@@ -125,7 +125,7 @@ src/scraping/    sitemaps, robots-aware fetcher, company matching, article extra
 src/dataset/     cleaning, splitting, QA validation, dataset assembly
 src/training/    prompt format (single source of truth), metrics, LoRA merge
 src/app/         retrieval, routing, pipeline, model wrapper, Gradio UI
-tests/           96 tests, all offline
+tests/           131 tests, all offline
 notebooks/       QA generation, fine-tuning, merge + publish (Kaggle)
 data/  models/   gitignored — rebuildable, see docs/reproducing.md
 ```

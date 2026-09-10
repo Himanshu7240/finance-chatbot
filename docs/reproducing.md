@@ -21,7 +21,7 @@ the way it does; this document is only concerned with getting it to run.
 git clone https://github.com/Himanshu7240/finance-chatbot && cd finance-chatbot
 pip install -r requirements.txt
 cp .env.example .env       # fill in HF_TOKEN
-pytest                     # 96 tests, no network, no downloads
+pytest                     # 131 tests, no network, no downloads
 ```
 
 See [`setup.md`](setup.md) for secrets, gated-repo access and the failure modes worth knowing

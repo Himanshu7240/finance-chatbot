@@ -204,8 +204,7 @@ def main() -> None:
     except FileNotFoundError as exc:
         # A fresh clone has no corpus. Start anyway: live prices work, and every corpus
         # question will explain what is missing.
-        log.warning("%s
-Starting without it - live price questions still work.", exc)
+        log.warning("%s -- starting without it; live price questions still work.", exc)
     session.pipeline.router.warm()
     if args.model is not None:
         log.info("%s", session.set_model(True))

@@ -8,7 +8,7 @@ actually hit, over twelve days.
 
 ```bash
 pip install -r requirements.txt
-pytest                      # 96 tests; no network, no model download, ~12 s
+pytest                      # 131 tests; no network, no model download
 python -m src.app.ui        # http://127.0.0.1:7860
 ```
 
@@ -86,7 +86,7 @@ src/scraping/    sitemaps, robots-aware fetcher, company matching, article extra
 src/dataset/     cleaning, splitting, QA validation, dataset assembly
 src/training/    prompt format (the single source of truth), metrics, LoRA merge
 src/app/         retrieval, routing, pipeline, model wrapper, Gradio UI
-tests/           96 tests, all offline
+tests/           131 tests, all offline
 notebooks/       the three Kaggle notebooks: QA generation, fine-tuning, merge + publish
 data/            gitignored; rebuildable via reproducing.md
 models/          gitignored; adapter and merged weights land here
