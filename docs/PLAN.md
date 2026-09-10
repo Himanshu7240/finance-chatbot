@@ -46,7 +46,15 @@ Rebuilding the WIDS finance chatbot from scratch — same documented methodology
       corpus and generator cover every routing and refusal path, the alias table, quote
       formatting, the TTL cache, and that the served prompt is byte-identical to the training
       prompt.
-- [ ] **Day 11 — Documentation**: README, dataset provenance, setup docs.
+- [x] **Day 11 — Documentation**: README rewritten around what the system is and what it can't
+      do (limitations up front, not buried); [`reproducing.md`](reproducing.md) — the ordered
+      runbook from an empty `data/` with timings and expected outputs per step;
+      [`setup.md`](setup.md) — secrets, optional dependencies and the traps that cost real time
+      (torchao/PEFT, the 4-bit merge, torch downgrades on Kaggle); dataset provenance added to
+      [`dataset-design.md`](dataset-design.md) — final counts, the rejection breakdown, uneven
+      per-company coverage (36-254 triplets), and what can and cannot be redistributed.
+      No new guide: Day 11 introduced no technique, and the runbook is the deliverable a guide
+      would otherwise have been.
 - [ ] **Day 12 — Final review & push**: demo, screenshots, release tag.
 
 ## Known deviations from the original

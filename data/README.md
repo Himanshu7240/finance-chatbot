@@ -14,6 +14,8 @@
 - `processed/{train,val,test}.json` — the final question/answer/context dataset in the
   `QAExample` schema, ready for training (`src.dataset.build`).
 
+Everything here is rebuilt by the runbook in [`docs/reproducing.md`](../docs/reproducing.md).
+
 `raw/` and `processed/` are gitignored because the datasets are large and regenerable via `src/scraping` and
 `src/dataset`. The final processed dataset is uploaded as a Kaggle Dataset for the training
 notebook to consume.
