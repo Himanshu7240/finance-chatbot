@@ -49,6 +49,14 @@ NO_COMPANY = (
 )
 NO_PRICE_COMPANY = "Which company's price? I can look up any NIFTY 50 stock."
 NO_PASSAGE = "I don't have anything on that in my sources."
+# A fresh clone has no corpus: data/processed/ is gitignored because it is article text we do
+# not redistribute (see docs/dataset-design.md). Live prices still work, so the app degrades to
+# half a product rather than failing - but it has to say which half is missing, and how to get
+# the other one back.
+NO_CORPUS = (
+    "My news corpus isn't built on this machine, so I can only answer live price questions. "
+    "Build it with docs/reproducing.md, or copy data/processed/ across."
+)
 
 # What makes a question a *follow-up* rather than a new one. Only these inherit the previous
 # turn's company; without the gate, every off-topic question would borrow it and get answered
@@ -190,7 +198,12 @@ class RAGPipeline:
 
     def _answer_corpus(self, question: str, company: Company,
                        assumed: bool = False) -> Answer:
-        passages = self.corpus.search(question, ticker=company.ticker, top_k=self.top_k)
+        try:
+            passages = self.corpus.search(question, ticker=company.ticker, top_k=self.top_k)
+        except FileNotFoundError as exc:
+            log.warning("%s", exc)
+            return Answer(NO_CORPUS, Route.REFUSED, question, company=company,
+                          reason="no corpus on this machine", assumed_company=assumed)
         if not passages:
             return Answer(NO_PASSAGE, Route.REFUSED, question, company=company,
                           reason="nothing above the score floor", assumed_company=assumed)

@@ -12,6 +12,7 @@ import pytest
 from src.app.corpus import Passage
 from src.app.pipeline import (
     NO_COMPANY,
+    NO_CORPUS,
     NO_PASSAGE,
     NO_PRICE_COMPANY,
     RAGPipeline,
@@ -195,3 +196,20 @@ class TestConversationState:
         answer = build().answer("what is its share price")
         assert answer.route is Route.REFUSED
         assert answer.assumption == ""
+
+
+class TestMissingCorpus:
+    """A fresh clone has no data/processed/ - gitignored article text we don't redistribute."""
+
+    class AbsentCorpus:
+        def search(self, question, ticker=None, top_k=3):
+            raise FileNotFoundError("data/processed/paragraphs.jsonl not found")
+
+    def test_a_corpus_question_refuses_instead_of_crashing(self):
+        answer = build(corpus=self.AbsentCorpus()).answer("why is tata steel restructuring")
+        assert answer.route is Route.REFUSED
+        assert "isn't built on this machine" in answer.text
+
+    def test_live_prices_still_work_without_a_corpus(self):
+        answer = build(corpus=self.AbsentCorpus()).answer("what is tata steel trading at")
+        assert answer.route is Route.LIVE_PRICE

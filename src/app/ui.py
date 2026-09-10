@@ -199,7 +199,13 @@ def main() -> None:
     # read as a hung app. The corpus index is local and quick (~7s), so it blocks; the
     # encoder reaches the Hub and is warmed on a thread, with the keyword rule covering
     # questions that arrive first.
-    session.pipeline.corpus.size
+    try:
+        session.pipeline.corpus.size
+    except FileNotFoundError as exc:
+        # A fresh clone has no corpus. Start anyway: live prices work, and every corpus
+        # question will explain what is missing.
+        log.warning("%s
+Starting without it - live price questions still work.", exc)
     session.pipeline.router.warm()
     if args.model is not None:
         log.info("%s", session.set_model(True))
