@@ -23,6 +23,7 @@ no hardcoded secrets, and a dataset built from the ground up.
 
 ```
 src/            # scraping, dataset building, training, and app code
+tests/          # pytest suite — no network, no model download
 notebooks/      # Kaggle notebooks (fine-tuning, data prep)
 data/           # raw/ and processed/ datasets (gitignored — see data/README.md)
 docs/           # original project report + supporting docs
@@ -48,10 +49,26 @@ Against the un-fine-tuned base on 300 held-out examples: exact match 11.7 → **
 [the limitations](docs/training-results.md) before trusting those numbers — the test answers
 came from the same teacher model as the training data, and ~8% of numeric answers are wrong.
 
-## Asking it something
+## Running it
 
-The retrieval layer runs on its own, without the 6.4 GB model — it answers from the evidence it
-retrieved, which is also what makes it testable:
+```bash
+python -m src.app.ui          # chat UI on http://127.0.0.1:7860
+```
+
+The app starts in about a second and answers from retrieved evidence; the fine-tuned model sits
+behind a checkbox and loads (6.4 GB, once) only if you tick it — so you can see, side by side,
+what the fine-tune actually contributes. Every answer shows its route, its sources and the exact
+context the model was given.
+
+Conversation state is deliberately thin: the model was trained on single turns and has no chat
+template, so history never enters the prompt. The UI carries only the last company and route, per
+session, which is enough for *"What is Reliance trading at?" → "and Wipro?"* to work — and it says
+when it assumed one.
+
+## Asking it from the command line
+
+The same pipeline, without the UI — it answers from the evidence it retrieved, which is also what
+makes it testable:
 
 ```bash
 python -m src.app.pipeline "What is Tata Steel trading at?"      # live NSE quote via yfinance
@@ -70,7 +87,12 @@ is refused rather than answered from a lexically similar paragraph. Every answer
 ```bash
 pip install -r requirements.txt
 cp .env.example .env   # fill in HF_TOKEN etc.
+pytest                 # 80 tests, no network and no model download
 ```
+
+The suite injects a fake price feed, a fake clock, a fake corpus and a fake generator, so every
+routing and refusal path is covered without touching Yahoo or downloading weights. Tests that need
+the built dataset skip themselves on a fresh clone.
 
 ## Docs
 

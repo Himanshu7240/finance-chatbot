@@ -38,7 +38,14 @@ Rebuilding the WIDS finance chatbot from scratch — same documented methodology
       company name from the query); intent routing **34/36** on a hand-labelled battery, against
       25/36 for the keyword rule alone. Runs end to end without the model, answering from the
       retrieved evidence itself.
-- [ ] **Day 10 — Gradio UI + integration testing**.
+- [x] **Day 10 — Gradio UI + integration testing**: Guide 07 on serving, `src/app/ui.py` —
+      starts in retrieval-only mode (useful in ~1s) with the 6.4 GB model behind a toggle, route
+      badge, sources and the exact context on screen, and per-session conversation state
+      (`gr.State`) that carries the last company and route without ever putting history in the
+      prompt. `tests/` — **80 tests**, no network and no weights: injected feed, clock,
+      corpus and generator cover every routing and refusal path, the alias table, quote
+      formatting, the TTL cache, and that the served prompt is byte-identical to the training
+      prompt.
 - [ ] **Day 11 — Documentation**: README, dataset provenance, setup docs.
 - [ ] **Day 12 — Final review & push**: demo, screenshots, release tag.
 

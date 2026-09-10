@@ -18,6 +18,9 @@ yfinance
 sentence-transformers
 scikit-learn
 
+# Tests
+pytest
+
 # Utilities
 python-dotenv
 wandb
