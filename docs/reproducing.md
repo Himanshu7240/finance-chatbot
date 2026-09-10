@@ -21,7 +21,7 @@ the way it does; this document is only concerned with getting it to run.
 git clone https://github.com/Himanshu7240/finance-chatbot && cd finance-chatbot
 pip install -r requirements.txt
 cp .env.example .env       # fill in HF_TOKEN
-pytest                     # 80 tests, no network, no downloads
+pytest                     # 96 tests, no network, no downloads
 ```
 
 See [`setup.md`](setup.md) for secrets, gated-repo access and the failure modes worth knowing
@@ -158,7 +158,7 @@ the Llama 3.2 Community License for distributed derivatives, and enforced in `me
 
 ## Step 8 — Serve it
 
-**Where:** local · **Time:** ~1 s to start · **Guides:**
+**Where:** local · **Time:** ~7 s to start · **Guides:**
 [06](guides/06-retrieval-and-the-app-layer.md), [07](guides/07-serving-a-small-model.md)
 
 ```bash

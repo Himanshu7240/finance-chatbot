@@ -1,13 +1,13 @@
 """Gradio chat interface over the Day 9 retrieval pipeline.
 
-    python -m src.app.ui                 # retrieval-only, ready in about a second
+    python -m src.app.ui                 # retrieval-only, up in a few seconds
     python -m src.app.ui --model         # load the 6.4 GB fine-tune at startup instead
 
 Design notes in docs/guides/07-serving-a-small-model.md. The three decisions that shaped
 this file:
 
 * **It starts without the model.** The pipeline answers from retrieved evidence alone, so
-  the app is useful immediately and the model loads only when someone asks for it. Toggling
+  the app is useful in seconds and the model loads only when someone asks for it. Toggling
   it mid-session shows what the fine-tune actually contributes - the paragraph, versus the
   span pulled out of it.
 * **Each turn is independent.** The model was fine-tuned on single `{question, context,
@@ -62,9 +62,10 @@ class ChatSession:
     """
 
     def __init__(self, model_id: str | None = None, device: str | None = None,
-                 use_embeddings: bool = True) -> None:
+                 use_embeddings: bool = True, dtype: str = "auto") -> None:
         self.model_id = model_id
         self.device = device
+        self.dtype = dtype
         self.pipeline = RAGPipeline(router=IntentRouter(use_embeddings=use_embeddings))
         self._generator = None
 
@@ -77,7 +78,8 @@ class ChatSession:
             from .model import DEFAULT_MODEL_ID, FinanceLLM
 
             self._generator = FinanceLLM(
-                model_id=self.model_id or DEFAULT_MODEL_ID, device=self.device
+                model_id=self.model_id or DEFAULT_MODEL_ID, device=self.device,
+                dtype=self.dtype,
             )
             try:
                 self._generator.load()          # slow, once; do it here rather than mid-answer
@@ -178,6 +180,9 @@ def main() -> None:
     parser.add_argument("--model", nargs="?", const="", default=None,
                         help="load the fine-tuned model at startup (optionally a model id)")
     parser.add_argument("--device", default=None)
+    parser.add_argument("--dtype", default="auto",
+                        help="auto | float16 | bfloat16 | float32 (auto: fp16 on GPU, "
+                             "bf16 on CPU - fp32 needs ~12.8 GB of RAM)")
     parser.add_argument("--port", type=int, default=7860)
     parser.add_argument("--share", action="store_true", help="public gradio.live link")
     parser.add_argument("--no-embeddings", action="store_true",
@@ -188,9 +193,14 @@ def main() -> None:
         logging.getLogger(noisy).setLevel(logging.WARNING)
 
     session = ChatSession(model_id=args.model or None, device=args.device,
-                          use_embeddings=not args.no_embeddings)
-    # Build the index now, so the first question is fast rather than surprising.
+                          use_embeddings=not args.no_embeddings, dtype=args.dtype)
+    # Both lazy loads are warmed here rather than inside a user's first question - found by
+    # watching the demo, where the first question needing the router paid 19s in-request and
+    # read as a hung app. The corpus index is local and quick (~7s), so it blocks; the
+    # encoder reaches the Hub and is warmed on a thread, with the keyword rule covering
+    # questions that arrive first.
     session.pipeline.corpus.size
+    session.pipeline.router.warm()
     if args.model is not None:
         log.info("%s", session.set_model(True))
 

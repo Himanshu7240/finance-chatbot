@@ -42,7 +42,7 @@ Rebuilding the WIDS finance chatbot from scratch — same documented methodology
       starts in retrieval-only mode (useful in ~1s) with the 6.4 GB model behind a toggle, route
       badge, sources and the exact context on screen, and per-session conversation state
       (`gr.State`) that carries the last company and route without ever putting history in the
-      prompt. `tests/` — **80 tests**, no network and no weights: injected feed, clock,
+      prompt. `tests/` — **96 tests**, no network and no weights: injected feed, clock,
       corpus and generator cover every routing and refusal path, the alias table, quote
       formatting, the TTL cache, and that the served prompt is byte-identical to the training
       prompt.
@@ -55,7 +55,12 @@ Rebuilding the WIDS finance chatbot from scratch — same documented methodology
       per-company coverage (36-254 triplets), and what can and cannot be redistributed.
       No new guide: Day 11 introduced no technique, and the runbook is the deliverable a guide
       would otherwise have been.
-- [ ] **Day 12 — Final review & push**: demo, screenshots, release tag.
+- [x] **Day 12 — Final review, demo, release**: end-to-end demo driven through the real UI
+      (screenshot in the README), secret scan and consistency pass across every doc, `--dtype`
+      control on the model wrapper (CPU now defaults to bf16 — fp32 needs 12.8 GB and does not
+      fit a 12 GB machine), and a fix for a startup hang found *during* the demo: the intent
+      router's encoder now warms on a daemon thread, so a slow Hugging Face Hub degrades routing
+      to the keyword rule instead of blocking the app. 96 tests. Tagged `v1.0.0`.
 
 ## Known deviations from the original
 

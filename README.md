@@ -11,7 +11,7 @@ technique it uses.
 
 ```bash
 pip install -r requirements.txt
-python -m src.app.ui              # http://127.0.0.1:7860, ready in about a second
+python -m src.app.ui              # http://127.0.0.1:7860, up in a few seconds
 ```
 
 ## What it does
@@ -72,6 +72,11 @@ training, evaluation and serving.
 
 ## Running it
 
+![The chat UI answering a live-price question, then a bare "and Wipro?" follow-up](docs/screenshots/chat-live-price-followup.jpg)
+
+*A price question, then `and Wipro?` — the follow-up inherits the route, and the panel shows where
+the number came from and exactly what the model was handed.*
+
 The app starts in **retrieval-only mode**: TF-IDF over the news corpus plus live quotes, answering
 with the retrieved evidence itself. The 6.4 GB model sits behind a checkbox, so the interface is
 useful immediately and you can see side by side what the fine-tune contributes — the paragraph,
@@ -91,7 +96,7 @@ python -m src.app.pipeline "How is Wipro's AI business doing?" --model    # add 
 ```
 
 ```bash
-pytest        # 80 tests, ~12 s, no network and no model download
+pytest        # 96 tests, ~12 s, no network and no model download
 ```
 
 The suite injects a fake price feed, a fake clock, a fake corpus and a fake generator, so every
@@ -120,7 +125,7 @@ src/scraping/    sitemaps, robots-aware fetcher, company matching, article extra
 src/dataset/     cleaning, splitting, QA validation, dataset assembly
 src/training/    prompt format (single source of truth), metrics, LoRA merge
 src/app/         retrieval, routing, pipeline, model wrapper, Gradio UI
-tests/           80 tests, all offline
+tests/           96 tests, all offline
 notebooks/       QA generation, fine-tuning, merge + publish (Kaggle)
 data/  models/   gitignored — rebuildable, see docs/reproducing.md
 ```

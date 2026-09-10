@@ -24,6 +24,10 @@ log = logging.getLogger("model")
 
 DEFAULT_MODEL_ID = "Himanshu724006/Llama-3.2-3B-finance-india"
 MAX_NEW_TOKENS = 64
+# 3.2B parameters: fp16/bf16 is ~6.4 GB of weights, fp32 twice that. On a 12 GB laptop the
+# fp32 copy simply does not fit, so CPU defaults to bfloat16 - which torch supports natively
+# on CPU, unlike fp16, where several ops fall back or are unimplemented.
+DTYPES = {"float16": "float16", "bfloat16": "bfloat16", "float32": "float32"}
 
 
 class FinanceLLM:
@@ -35,11 +39,13 @@ class FinanceLLM:
         device: str | None = None,
         max_new_tokens: int = MAX_NEW_TOKENS,
         token: str | None = None,
+        dtype: str = "auto",
     ) -> None:
         self.model_id = model_id
         self.device = device
         self.max_new_tokens = max_new_tokens
         self.token = token
+        self.dtype = dtype
         self._model = None
         self._tokenizer = None
 
@@ -51,11 +57,15 @@ class FinanceLLM:
         from transformers import AutoModelForCausalLM, AutoTokenizer
 
         device = self.device or ("cuda" if torch.cuda.is_available() else "cpu")
-        log.info("loading %s on %s", self.model_id, device)
+        if self.dtype == "auto":
+            dtype = torch.float16 if device == "cuda" else torch.bfloat16
+        else:
+            dtype = getattr(torch, DTYPES[self.dtype])
+        log.info("loading %s on %s (%s, ~6.4 GB)", self.model_id, device, dtype)
         self._tokenizer = AutoTokenizer.from_pretrained(self.model_id, token=self.token)
         self._model = AutoModelForCausalLM.from_pretrained(
             self.model_id,
-            dtype=torch.float16 if device == "cuda" else torch.float32,
+            dtype=dtype,
             low_cpu_mem_usage=True,
             token=self.token,
         ).to(device)
@@ -91,10 +101,11 @@ def main() -> None:
     parser.add_argument("--context", required=True)
     parser.add_argument("--model-id", default=DEFAULT_MODEL_ID)
     parser.add_argument("--device", default=None)
+    parser.add_argument("--dtype", default="auto", choices=["auto", *DTYPES])
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(message)s")
 
-    llm = FinanceLLM(model_id=args.model_id, device=args.device)
+    llm = FinanceLLM(model_id=args.model_id, device=args.device, dtype=args.dtype)
     log.info("%s", llm(args.question, args.context))
 
 

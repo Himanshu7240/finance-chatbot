@@ -16,12 +16,38 @@ The Day 9 pipeline already gave us something better to do. `RAGPipeline` runs wi
 and answers from the retrieved evidence itself: the quote sentence, or the retrieved paragraph.
 That is not a degraded mode bolted on for the demo — it is *the retrieved evidence*, which is the
 grounding the model would have been given anyway. So the app starts in retrieval-only mode, is
-useful in about a second, and the model loads when the user asks for it:
+useful in seconds, and the model loads when the user asks for it:
 
 ```
-start (≈1s)  ->  TF-IDF index built, yfinance live, answers are evidence
+start (≈7s)  ->  TF-IDF index built, yfinance live, answers are evidence
 toggle       ->  6.4 GB model loads once, answers become extracted spans
 ```
+
+### Lazy loading is only half a policy
+
+Two things load lazily here, and the demo proved they need opposite treatment. The TF-IDF index
+takes ~7 s over 10,257 paragraphs, is entirely local, and is deterministic — so it is built at
+startup and the app waits for it.
+
+The intent router's sentence encoder is a different animal. It reaches the Hugging Face Hub *even
+when the model is already cached*, and when the Hub is unreachable its client retries with
+exponential backoff — a measurement here ran to **hours**, not seconds. Three placements, three
+failure modes:
+
+| Where it loads | What the user sees |
+|---|---|
+| Inside the first request that needs it | a 19 s hang, mid-conversation, with no explanation |
+| Synchronously at startup | an app that never finishes starting, on a bad network |
+| **On a daemon thread at startup** | an app that starts now and routes with the keyword rule for ~28 s |
+
+The third is the only one that degrades instead of breaking, and it works because the fallback was
+already real: questions arriving before the encoder is ready take the lexical rule, which
+Guide 06 measured at 25/36 rather than 34/36. A worse answer now beats a better answer never — but
+only if you built the worse path deliberately.
+
+The mechanism is a lock rather than a flag: `similarity()` tries to acquire it without blocking,
+and a failure to acquire *is* the signal that a warm-up is in flight. It also tries
+`local_files_only=True` first, so a cached encoder loads with no network at all.
 
 This also makes the model's contribution *visible*, which is more than most demos manage. Ask the
 same question twice, once each way, and you see exactly what fine-tuning bought: the paragraph

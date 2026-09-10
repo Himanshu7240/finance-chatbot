@@ -220,6 +220,9 @@ def main() -> None:
                         help="load the fine-tuned model (optionally a model id); "
                              "without it, answers are the retrieved text itself")
     parser.add_argument("--device", default=None)
+    parser.add_argument("--dtype", default="auto",
+                        help="auto | float16 | bfloat16 | float32 (auto: fp16 on GPU, "
+                             "bf16 on CPU - fp32 needs ~12.8 GB of RAM)")
     parser.add_argument("--no-embeddings", action="store_true",
                         help="route with the keyword rule only")
     parser.add_argument("--top-k", type=int, default=3)
@@ -233,7 +236,8 @@ def main() -> None:
     if args.model is not None:
         from .model import DEFAULT_MODEL_ID, FinanceLLM
 
-        generator = FinanceLLM(model_id=args.model or DEFAULT_MODEL_ID, device=args.device)
+        generator = FinanceLLM(model_id=args.model or DEFAULT_MODEL_ID, device=args.device,
+                               dtype=args.dtype)
 
     pipeline = RAGPipeline(
         generator=generator,

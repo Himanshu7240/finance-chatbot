@@ -30,6 +30,7 @@ from __future__ import annotations
 import argparse
 import logging
 import re
+import threading
 from dataclasses import dataclass
 
 from ..scraping.matcher import match_text, strip_company
@@ -97,22 +98,54 @@ class IntentRouter:
         self._model = None
         self._prototypes = None
         self._embedding_failed = False
+        self._lock = threading.Lock()
+
+    def warm(self) -> None:
+        """Start loading the encoder in the background.
+
+        Loading reaches the Hugging Face Hub even when the model is cached, and when the Hub
+        is unreachable its client retries with backoff - measured at *hours*, not seconds.
+        Doing that inside the first request looks like a hung app; doing it synchronously at
+        startup looks like an app that will not start. So it happens on a daemon thread, and
+        every question that arrives before it finishes is routed by the keyword rule.
+        """
+        if self._model is None and not self._embedding_failed and self.use_embeddings:
+            threading.Thread(target=self._load, name="router-warm", daemon=True).start()
+
+    def _load(self) -> None:
+        """Load the encoder once. Falls back permanently and quietly if it is unavailable."""
+        with self._lock:
+            if self._model is not None or self._embedding_failed:
+                return
+            try:
+                from sentence_transformers import SentenceTransformer
+
+                try:
+                    # A cached model loads instantly and offline. Only reach the network if
+                    # it genuinely is not on disk yet.
+                    model = SentenceTransformer(self.model_name, local_files_only=True)
+                except Exception:
+                    log.info("downloading the intent-router encoder (%s)", self.model_name)
+                    model = SentenceTransformer(self.model_name)
+                self._prototypes = model.encode(
+                    PRICE_PROTOTYPES, normalize_embeddings=True, show_progress_bar=False
+                )
+                self._model = model
+            except Exception as exc:            # not installed, no network, no disk space
+                log.info("embedding router unavailable (%s); using the keyword rule", exc)
+                self._embedding_failed = True
+                self._model = None
 
     def _ensure_model(self):
-        """Load the encoder once; fall back permanently and quietly if it is unavailable."""
+        """The encoder if it is ready, or ``None`` - never blocking behind a warm-up."""
         if self._model is not None or self._embedding_failed or not self.use_embeddings:
             return self._model
-        try:
-            from sentence_transformers import SentenceTransformer
-
-            self._model = SentenceTransformer(self.model_name)
-            self._prototypes = self._model.encode(
-                PRICE_PROTOTYPES, normalize_embeddings=True, show_progress_bar=False
-            )
-        except Exception as exc:                # not installed, no network, no disk space
-            log.info("embedding router unavailable (%s); using the keyword rule", exc)
-            self._embedding_failed = True
-            self._model = None
+        if not self._lock.acquire(blocking=False):
+            # A warm-up holds the lock. This turn takes the keyword rule rather than
+            # waiting on a network call of unknown length.
+            return None
+        self._lock.release()
+        self._load()
         return self._model
 
     def similarity(self, question: str) -> float | None:
