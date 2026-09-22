@@ -42,7 +42,7 @@ Rebuilding the WIDS finance chatbot from scratch — same documented methodology
       starts in retrieval-only mode (useful in ~1s) with the 6.4 GB model behind a toggle, route
       badge, sources and the exact context on screen, and per-session conversation state
       (`gr.State`) that carries the last company and route without ever putting history in the
-      prompt. `tests/` — **131 tests**, no network and no weights: injected feed, clock,
+      prompt. `tests/` — **80 tests**, no network and no weights: injected feed, clock,
       corpus and generator cover every routing and refusal path, the alias table, quote
       formatting, the TTL cache, and that the served prompt is byte-identical to the training
       prompt.
@@ -60,7 +60,25 @@ Rebuilding the WIDS finance chatbot from scratch — same documented methodology
       control on the model wrapper (CPU now defaults to bf16 — fp32 needs 12.8 GB and does not
       fit a 12 GB machine), and a fix for a startup hang found *during* the demo: the intent
       router's encoder now warms on a daemon thread, so a slow Hugging Face Hub degrades routing
-      to the keyword rule instead of blocking the app. 131 tests. Tagged `v1.0.0`.
+      to the keyword rule instead of blocking the app. 96 tests. Tagged `v1.0.0`.
+
+## After v1.0.0
+
+Two fixes shipped after the tag, both from looking at the repo the way a stranger
+would rather than the way its author does. Tagged `v1.0.1`.
+
+- **A fresh clone crashed on any corpus question.** `data/processed/` is article text the
+  repo deliberately does not redistribute, so a clean checkout has none of it — and the
+  corpus route walked straight into a `FileNotFoundError` traceback, while the UI failed at
+  startup warming the index. `setup.md` had promised corpus answers would merely be
+  "unavailable"; now they are — the route refuses with what is missing and how to rebuild
+  it, live prices keep working, and the app starts either way. (`9b128c8`)
+- **`ui.py` did not parse, and every test stayed green.** The warning added by that fix had
+  a newline inside its string literal. Nothing in the suite imported `ui.py`, so nothing
+  noticed. `tests/test_imports.py` now imports every module, builds every CLI parser, and
+  constructs the Gradio Blocks where gradio is installed. Assertions about behaviour are
+  worth more than smoke tests — but only for code the tests actually load.
+  98 → **131 tests**. (`ed486a4`)
 
 ## Known deviations from the original
 
